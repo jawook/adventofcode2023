@@ -11,4 +11,90 @@ elif data == 2:
 f = open(fn, 'r')
 raw = [j for j in f.read().splitlines()]
 # --------------------------
-    
+
+#%% Part 1
+
+import re
+
+nums = []
+syms = []
+
+# create a dictionary with the location of all numbers and symbols in the table
+for r in range(len(raw)):
+    lineNums = re.finditer(r'\d+', raw[r])
+    lineSyms = re.finditer(r'[^0-9.]', raw[r])
+    for ln in lineNums:
+        nums.append({'num': ln.group(), 
+                     'coors': [(r, c) for c in range(ln.start(), ln.end())]})
+    for sy in lineSyms:
+        syms.append({'sym': sy.group(),
+                     'coors': (r, sy.start())})
+
+# function to take a number with coordinates and check if any symbols with 
+# coordinates are in validating locations
+# returns false if there is no symbol in a valid location, true if there is a
+# symbol in a valid location
+def chckNum(numCoors, symCoors):
+    numCoors = set(numCoors)
+    symCoors = set(symCoors)
+    chckCoors = numCoors.copy()
+    for nc in numCoors:
+        for cOffset in range(-1, 2):
+            for rOffset in range(-1, 2):
+                chckCoors.add((nc[0] + rOffset, nc[1] + cOffset))
+    if chckCoors.isdisjoint(symCoors):
+        return False
+    else:
+        return True
+
+# get a list of all symbol coordinates
+symCoors = [j['coors'] for j in syms]
+
+# check each number against all symbol locations
+for j in nums:
+    j['valid'] = chckNum(j['coors'], symCoors)
+
+# sum all of the valid numbers
+valSum = 0
+for j in nums:
+    if j['valid']:
+        valSum += int(j['num'])
+
+print('Part 1 Answer: ' + str(valSum))
+
+#%% Part 2
+
+# Build a function that checks each symbol, and if its an *, check if there
+# are exactly two matches for neighboring numbers.  If so, returns the power.
+# otherwise, returns 0
+
+def chckGear(symDict, numDict):
+    symCoors = set(symDict['coors'])
+    chkCoors = symCoors.copy()
+    for cOffset in range(-1, 2):
+        for rOffset in range(-1, 2):
+            chkCoors.add((symDict['coors'][0] + rOffset, 
+                          symDict['coors'][1] + cOffset))
+    if symDict['sym'] != '*':
+        return False
+    else:
+        # loop through the all of the numbers and count how many overlap with
+        # the checkset
+        olNums = []
+        for nm in numDict:
+            # if the number is not adjacent, move to next number
+            if chkCoors.isdisjoint(set(nm['coors'])):
+                continue
+            else:
+                # if the number is adjacent, add it to the list of adj nums
+                olNums.append(nm['num'])
+        if len(olNums) == 2:
+            return int(olNums[0]) * int(olNums[1])
+        else:
+            return 0
+
+powSum = 0        
+for sy in syms:
+    powSum += chckGear(sy, nums)
+
+print('Part 2 Answer: ' + str(powSum))
