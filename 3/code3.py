@@ -76,7 +76,7 @@ def chckGear(symDict, numDict):
             chkCoors.add((symDict['coors'][0] + rOffset, 
                           symDict['coors'][1] + cOffset))
     if symDict['sym'] != '*':
-        return False
+        return 0
     else:
         # loop through the all of the numbers and count how many overlap with
         # the checkset
