@@ -11,4 +11,64 @@ elif data == 2:
 f = open(fn, 'r')
 raw = [j for j in f.read().splitlines()]
 # --------------------------
+
+#%% Part 1
+
+import re
+
+res = [r[r.index(':')+1:].split(';') for r in raw]
+
+for r in range(len(res)):
+    for j in range(len(res[r])):
+        res[r][j] = re.findall(r'\d+|[a-z]+', res[r][j])
+
+ballList = {'red': 12, 'green': 13, 'blue': 14}
+gmCnt = 1
+valList = []
+
+for r in res:
+    # print(r)
+    maxList = {'red': 0, 'green': 0, 'blue': 0}
+    val=True
+    isClr = True
+    for j in r:
+        # print(j)
+        for i in reversed(j):
+            # print(i)
+            if isClr:
+                curClr = i
+                isClr = not isClr
+            else:
+                maxList[curClr] = max(maxList[curClr], int(i))
+                isClr = not isClr
+    for j in maxList:
+        if maxList[j] > ballList[j]: val=False
+    if val: valList.append(gmCnt)
+    gmCnt += 1
     
+print('Part 1 Answer: ' + str(sum(valList)))
+
+#%% Part 2
+
+gmCnt = 1
+pwrs = []
+
+for r in res:
+    # print(r)
+    maxClrs = {'red': 0, 'green': 0, 'blue': 0}
+    isClr = True
+    for j in r:
+        # print(j)
+        for i in reversed(j):
+            # print(i)
+            if isClr:
+                curClr = i
+                isClr = not isClr
+            else:
+                maxClrs[curClr] = max(maxClrs[curClr], int(i))
+                isClr = not isClr
+    pwr = maxClrs['red'] * maxClrs['blue'] * maxClrs['green']
+    pwrs.append(pwr)
+    gmCnt += 1
+    
+print('Part 2 Answer: ' + str(sum(pwrs)))
