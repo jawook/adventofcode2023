@@ -11,4 +11,82 @@ elif data == 2:
 f = open(fn, 'r')
 raw = [j for j in f.read().splitlines()]
 # --------------------------
+
+#%% Prep the map for processing
+mp = []
+for j in raw:
+    if j != '':
+        mp.append(j)
+
+#%% Function to take a set of mapping items and convert to integer lists
+def genIntList(lst):
+    outLst = []
+    for i in lst:
+        outLst.append(i.split(' '))
+    for j, k in enumerate(outLst):
+        outLst[j] = [int(l) for l in k]
+    return outLst
+                    
+#%% Build a dictionary with all mapping instructions
+
+seeds = [int(i) for i in mp[0].split(' ')[1:]]
+
+mpDict = {}
+mpDict['Seed2Soil'] = genIntList(mp[mp.index('seed-to-soil map:') + 1:
+                                    mp.index('soil-to-fertilizer map:')])
+mpDict['Soil2Fert'] = genIntList(mp[mp.index('soil-to-fertilizer map:') + 1:
+                                     mp.index('fertilizer-to-water map:')])
+mpDict['Fert2Watr'] = genIntList(mp[mp.index('fertilizer-to-water map:') + 1:
+                                    mp.index('water-to-light map:')])
+mpDict['Watr2Lite'] = genIntList(mp[mp.index('water-to-light map:') + 1:
+                                    mp.index('light-to-temperature map:')])
+mpDict['Lite2Temp'] = genIntList(mp[mp.index('light-to-temperature map:') + 1:
+                                    mp.index('temperature-to-humidity map:')])
+mpDict['Temp2Humd'] = genIntList(mp[mp.index('temperature-to-humidity map:') + 1:
+                                    mp.index('humidity-to-location map:')])
+mpDict['Humd2Loca'] = genIntList(mp[mp.index('humidity-to-location map:') + 1:])
+
+#%% A function that takes an input number, a map line and generates an output number
+def genOutput(inp, mpBlock):
+    for mpLine in mpBlock:
+        inpStart = mpLine[1]
+        outStart = mpLine[0]
+        rng = mpLine[2]
+        if (inp >= inpStart) and (inp <= inpStart + rng - 1):
+            # print(mpLine)
+            return inp - inpStart + outStart
+    return inp
     
+#%% A function that takes each seed and a list of instructions and generates a location
+def calcLoc(seed, mpDict):
+    soil = genOutput(seed, mpDict['Seed2Soil'])
+    # print('Seed: ' + str(seed) + ' | soil: ' + str(soil))
+    fert = genOutput(soil, mpDict['Soil2Fert'])
+    # print('Seed: ' + str(seed) + ' | fert: ' + str(fert))
+    watr = genOutput(fert, mpDict['Fert2Watr'])
+    # print('Seed: ' + str(seed) + ' | watr: ' + str(watr))
+    lite = genOutput(watr, mpDict['Watr2Lite'])
+    # print('Seed: ' + str(seed) + ' | lite: ' + str(lite))
+    temp = genOutput(lite, mpDict['Lite2Temp'])
+    # print('Seed: ' + str(seed) + ' | temp: ' + str(temp))
+    humd = genOutput(temp, mpDict['Temp2Humd'])
+    # print('Seed: ' + str(seed) + ' | humd: ' + str(humd))
+    loca = genOutput(humd, mpDict['Humd2Loca'])
+    # print('Seed: ' + str(seed) + ' | loca: ' + str(loca))
+    return loca
+
+#%% loop through each seed and pulls the appropriate location
+locs = []
+
+for i in seeds:
+    locs.append(calcLoc(i, mpDict))
+    
+#%% Output part 1 answer
+print('Part 1 Answer: ' + str(min(locs)))
+
+#%% Part 2 - Need a list of startseed and a list of ranges
+startSeeds = seeds[0::2]
+rangeSeeds = seeds[1::2]
+    # use intervals and progressively check each against the rules
+    # this is annoying to me so I will come back later and see if I can figure
+    # out a better way

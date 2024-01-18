@@ -11,4 +11,48 @@ elif data == 2:
 f = open(fn, 'r')
 raw = [j for j in f.read().splitlines()]
 # --------------------------
+
+#%% Shaping data
+import re
+
+times = [int(i) for i in re.findall(r'[0-9]+', raw[0])]
+distance = [int(i) for i in re.findall(r'[0-9]+', raw[1])]
+
+#%% Create a function to calculate the distance for any input
+def calcDist(hld, rcLen):
+    speed = hld
+    dist = (rcLen - hld) * speed
+    return dist
+
+#%% Create a function to create a dictionary showing distance for all hold times
+def calcAllDist(rcLen):
+    distDict = {}
+    for j in range(rcLen+1):
+        distDict[j] = calcDist(j, rcLen)
+    return distDict
+
+#%% Loop through each race and develop a dictionionary of dictionaries
+results = {}
+
+for t, time in enumerate(times):
+    results[t] = calcAllDist(time)
     
+#%% Loop through each results set and calculate how many beat the record
+winList = []
+
+for j in results:
+    wnrs = 0
+    for i in results[j]:
+        if results[j][i] > distance[j]:
+            wnrs += 1
+    winList.append(wnrs)
+
+#%% Output results
+import numpy as np
+answer = np.prod(np.array(winList))
+print('Part 1 Answer: ' + str(answer))
+
+#%% Part 2
+
+# This is a massive iteration, need to build some sort of binary search to
+# narrow this more easily
