@@ -11,4 +11,46 @@ elif data == 2:
 f = open(fn, 'r')
 raw = [j for j in f.read().splitlines()]
 # --------------------------
+
+#%% Create a dictionary of original data
+
+data = {}
+
+for r, ra in enumerate(raw):
+    data[r] = {0: [int(j) for j in ra.split(' ')]}
     
+#%% Loop through repeatedly adding new records as described in the instructions
+
+while not(all(all(j==0 for j in inner) for inner in [data[i][max(data[i].keys())]for i in data])): # this line checks if the last row of all entries in the dictionary is zero
+    for d in data:
+        priorMax = max(data[d].keys())
+        lenPrior = len(data[d][priorMax])
+        if all([i == 0 for i in data[d][priorMax]]):
+            continue
+        data[d][priorMax + 1] = []
+        for j in range(lenPrior-1):
+            data[d][priorMax + 1].append(data[d][priorMax][j+1] -
+                                         data[d][priorMax][j])
+            
+#%% Add an additional record to each row, starting at the bottom - creating the forecast
+
+for d in data:
+    priorMax = max(data[d].keys())
+    data[d][priorMax].append(0)
+    for i in range(priorMax-1, -1, -1):
+        data[d][i].append(data[d][i][-1] + data[d][i+1][-1])
+        
+#%% Part 1 Answer
+p1Answer = sum([data[i][0][-1] for i in data])
+print('Part 1 Answer: ' + str(p1Answer))
+
+#%% Part 2 - reverse forcast
+for d in data:
+    priorMax = max(data[d].keys())
+    data[d][priorMax].insert(0, 0)
+    for i in range(priorMax-1, -1, -1):
+        data[d][i].insert(0, data[d][i][0] - data[d][i+1][0])
+
+#%% Part 2 Answer
+p2Answer = sum([data[i][0][0] for i in data])
+print('Part 2 Answer: ' + str(p2Answer))

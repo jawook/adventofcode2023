@@ -11,4 +11,48 @@ elif data == 2:
 f = open(fn, 'r')
 raw = [j for j in f.read().splitlines()]
 # --------------------------
+
+#%% Split up data
+from collections import deque
+dirs = deque([j for j in raw[0]])
+
+maps = {}
+for i in raw[2:]:
+    maps[i[:3]] = {'L': i[7:10], 'R': i[12:15]}
+    
+#%% Part 1 -> take data and rotate the deque until you hit ZZZ
+# nxt = 'AAA'
+# count=0
+
+# while nxt != 'ZZZ':
+#     count += 1
+#     nxt = maps[nxt][dirs[0]]
+#     dirs.rotate(-1)
+    
+#%% Part 1 Answer
+# print('Part 1 Answer: ' + str(count))
+
+#%% Part 2 -> start on all items that end with A THIS RUNS OVER A BILLION TIMES
+startSquares = []
+for i in maps.keys():
+    if i[2] == 'A':
+        startSquares.append(i)
+
+curSquares = startSquares.copy()
+
+notFin = True
+count = 0
+
+while True:
+    count+=1
+    # print(count)
+    nxtSquares = []
+    ends = []
+    for j in curSquares:
+        nxtSquares.append(maps[j][dirs[0]])
+        ends.append(maps[j][dirs[0]][2] == 'Z')
+    dirs.rotate(-1)
+    curSquares = nxtSquares.copy()
+    if all(ends):
+        break
     
