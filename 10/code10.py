@@ -11,4 +11,83 @@ elif data == 2:
 f = open(fn, 'r')
 raw = [j for j in f.read().splitlines()]
 # --------------------------
-    
+
+#%% import required packages
+
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+
+#%% convert to an array outlining connections
+
+insts = np.array([[j for j in i] for i in raw])
+instDims = insts.shape
+startR = np.where(insts=='S')[0][0]
+startC = np.where(insts=='S')[1][0]
+startPt = (startR, startC)
+
+# create pairing of connections based on the instruction
+
+mapInst = {'|': ((-1, 0), (1, 0)), '-': ((0, -1), (0, 1)), 'L': ((-1, 0), (0, 1)),
+           'J': ((-1, 0), (0, -1)), '7': ((0, -1), (1, 0)), 'F': ((0, 1), (1, 0)),
+           '.': (), 'S': ()}
+
+#%% create a graph of coordinates that starts with the start node
+
+# Create a graph with all of the neighbours around the start square to identify
+# those connected to the starting square
+
+startConnex = nx.Graph()
+startConnex.add_node(startPt)
+for n in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+    coor = (startR + n[0], startC + n[1])
+    # print(coor)
+    shp = insts[coor]
+    # print(shp)
+    startConnex.add_node(coor)
+    startConnex.add_edge(coor, (coor[0] + mapInst[shp][0][0], 
+                                coor[1] + mapInst[shp][0][1]))
+    startConnex.add_edge(coor, (coor[0] + mapInst[shp][1][0], 
+                                coor[1] + mapInst[shp][1][1]))
+
+#%% start from the first start connected node and create all connections and
+# return to the start node again
+
+G = nx.Graph()
+G.add_node(startPt)
+
+# initialize with graph that connects the two starting points
+startConnected = [x for x in startConnex.neighbors(startPt)]
+for j in startConnected:
+    G.add_edge(startPt, j)
+currCoor = startConnected[0]
+
+while (currCoor not in startConnected) or (len(G) < 4):
+    print(str(currCoor) + '-> current coordinate')
+    shp = insts[currCoor]
+    cxns = mapInst[shp]
+    for c in cxns:
+        print(str(c) + '-> trying this offset')
+        tryCoor = (currCoor[0] + c[0], currCoor[1] + c[1])
+        print(str(tryCoor) + '-> trying this coordinate')
+        if (tryCoor not in G) or ((tryCoor in startConnected) and (len(G) > 4)):
+            G.add_edge(currCoor, tryCoor)
+            currCoor = tryCoor
+            print(str(currCoor) + '-> new currCoor')
+            break
+
+# nx.draw_networkx(G, with_labels=True, font_weight='bold')
+# plt.show()
+
+#%% create a dictionary measuring the distance of all points from the start
+
+# distDict = {}
+
+# for g in G:
+#     distDict[g] = len(nx.shortest_path(G, g, startPt))-1
+
+# NOT NECESSARY -> JUST DIVIDE THE NUMBER OF NODES BY 2!
+
+#%% Part 1 Answer
+
+print('Part 1 Answer: ' + str(len(G) / 2))
