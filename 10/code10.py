@@ -91,3 +91,12 @@ while (currCoor not in startConnected) or (len(G) < 4):
 #%% Part 1 Answer
 
 print('Part 1 Answer: ' + str(len(G) / 2))
+
+#%% Part 2
+
+# plot an array with the path listed
+pathMap = np.ones(insts.shape)
+for g in G:
+    pathMap[g] = 0
+    
+# Need to develop a way to calculate all numbers that are internal to the shape

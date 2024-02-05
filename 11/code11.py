@@ -11,4 +11,120 @@ elif data == 2:
 f = open(fn, 'r')
 raw = [j for j in f.read().splitlines()]
 # --------------------------
+
+#%% Import required packages
+
+import numpy as np
+from itertools import combinations as cb
+
+#%% Get data as a numpy array
+
+begin = [list(i) for i in raw]
+begin = np.array(begin)
+
+#%% Create a function to loop through all rows and columns, if there is a 
+# blank, add a new one
+
+def expArray(origArray):
+    curRow = 0
+    while curRow < origArray.shape[0]:
+        # print('Current row: ' + str(curRow))
+        if np.all(origArray[curRow, :] == '.'):
+            # print('Row ' + str(curRow) + ' is blank')
+            origArray = np.insert(origArray, curRow, 
+                                  np.full((1, origArray.shape[1]), '.'), axis=0)
+            curRow += 2
+        else:
+            curRow += 1
+    curCol = 0
+    while curCol < origArray.shape[1]:
+        # print('Current col: ' + str(curCol))
+        if np.all(origArray[:, curCol] == '.'):
+            # print('Col ' + str(curCol) + ' is blank')
+            origArray = np.insert(origArray, curCol, 
+                                  np.full((origArray.shape[0], ), '.'), axis=1)
+            curCol += 2
+        else:
+            curCol += 1
+    return origArray
+
+expd = expArray(begin)
+
+#%% Locate coordinates of all #s
+
+locs = np.where(expd == '#')
+locs = tuple(zip(locs[0], locs[1]))
+
+#%% Generate all pairings of coordinates
+
+pairs = cb(locs, 2)
+
+# Create a dictionary that measures manhattan distances for each pairing
+dists = {}
+
+for j in pairs:
+    dists[j] = abs(j[0][0] - j[1][0]) + abs(j[0][1] - j[1][1])
     
+#%% Part 1 Answer
+
+print('Part 1 Answer: ' + str(sum(dists.values())))
+
+#%% Part 2 Function Modifications
+
+def expArray2(oA, addVal):
+    origArray = oA.copy()
+    origArray[origArray == '.'] = 1
+    origArray[origArray == '#'] = 0
+    origArray = origArray.astype(int)
+    curRow = 0
+    while curRow < origArray.shape[0]:
+        # print('Current row: ' + str(curRow))
+        if np.all(origArray[curRow, :] == 1):
+            # print('Row ' + str(curRow) + ' is blank')
+            origArray[curRow, :] = addVal
+            curRow += 1
+        else:
+            curRow += 1
+    curCol = 0
+    while curCol < origArray.shape[1]:
+        # print('Current col: ' + str(curCol))
+        if np.all(np.isin(origArray[:, curCol], [1, addVal])):
+            # print('Col ' + str(curCol) + ' is blank')
+            origArray[:, curCol] = addVal
+            curCol += 1
+        else:
+            curCol += 1
+    return origArray
+
+expd2 = expArray2(begin, 1000000)
+
+#%% Locate coordinates of all 0s
+
+locs2 = np.where(expd2 == 0)
+locs2 = tuple(zip(locs2[0], locs2[1]))
+
+#%% Generate all pairings of coordinates
+
+pairs2 = cb(locs2, 2)
+
+# Create a dictionary that measures manhattan distances for each pairing
+dists2 = {}
+
+expd2[expd2 == 0] = 1
+
+for j in pairs2:
+    # print('Current pair: ' + str(j))
+    maxRow = max(j[0][0], j[1][0])
+    minRow = min(j[0][0], j[1][0])
+    maxCol = max(j[0][1], j[1][1])
+    minCol = min(j[0][1], j[1][1])
+    stripC = expd2[minRow:maxRow + 1, minCol]
+    # print('Column strip: ' + str(stripC))
+    stripR = expd2[maxRow, minCol + 1:maxCol + 1]
+    # print('Row strip: ' + str(stripR))    
+    dists2[j] = np.int64(sum(stripC) + sum(stripR) - 1)
+    # print('Measured dist: ' + str(dists2[j]))
+    
+#%% Part 2 Answer
+
+print('Part 2 Answer: ' + str(sum(dists2.values())))
